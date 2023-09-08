@@ -9,8 +9,11 @@ public:
   double mamba; // メンタル対応
   int n_made = 0;
   int n_miss = 0;
+  double eta;
+  double eta_p = 0.5;
 
-  PlayerBase(double mt = 0, double s = 0, double mb = 0) : mental(mt), shot_base(s), shot_acc(s), mamba(mb) {}
+  PlayerBase(double mt = 0, double s = 0, double mb = 0, double eta = 0) 
+  : mental(mt), shot_base(s), shot_acc(s), mamba(mb), eta(eta) {}
 };
 
 #endif

@@ -24,6 +24,7 @@ public:
   std::vector<Player> players;
 
   Game(std::vector<Player> players) { this->players = players; }
+  ~Game(){ std::vector<Player>().swap(players); }
 
   int play() {
     int who = shot_select();
@@ -60,12 +61,10 @@ public:
     for(int i=0; i<5; i++) {
       if(i == who) continue;
       players[i].mental_heal();
-      if(players[i].mental <= 0) players[i].mental = 0;
-      if(players[i].mental >= 1) players[i].mental = 1;
+      players[i].mental_scale();
     }
     
-    if(players[who].mental <= 0) players[who].mental = 0;
-    if(players[who].mental >= 1) players[who].mental = 1;
+    players[who].mental_scale();
   }
 
 };

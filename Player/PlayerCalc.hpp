@@ -6,7 +6,7 @@
 
 class PlayerCalc : public PlayerBase {
 public:
-  PlayerCalc(double mt = 0, double s = 0, double mb = 0) : PlayerBase(mt, s, mb) {}
+  PlayerCalc(double mt=0, double s=0, double mb=0, double eta=0) : PlayerBase(mt, s, mb, eta) {}
 
   double mental_function() {
     return 1 - mamba;

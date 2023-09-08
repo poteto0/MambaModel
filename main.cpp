@@ -1,11 +1,13 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-
+#include <filesystem>
 #include "Game/Game.hpp"
 #include "Output/Output.hpp"
+#include "Init/generator.hpp"
 
 using namespace std;
+namespace fs = std::filesystem;
 
 vector<int> poss;
 vector<double> d;
@@ -24,48 +26,50 @@ vector<string> titles = {
 
 int main() {
   double eta = 0.1;
-  std::vector<Player> players = {
-    Player(/* mt = */ 1.0, /* s = */ 0.6, /* mb = */ 0.9, /* eta = */ eta), 
-    Player(/* mt = */ 1.0, /* s = */ 0.5, /* mb = */ 0.4, /* eta = */ eta),
-    Player(/* mt = */ 1.0, /* s = */ 0.5, /* mb = */ 0.4, /* eta = */ eta),
-    Player(/* mt = */ 1.0, /* s = */ 0.5, /* mb = */ 0.4, /* eta = */ eta),
-    Player(/* mt = */ 1.0, /* s = */ 0.5, /* mb = */ 0.4, /* eta = */ eta)
-  };
 
-  string dirname = "Result/ace_mamba/";
+  vector<pair<int, double>> params = {{1, 0.9}, {1, 0.7}, {1, 0.5}, {1, 0.3}};
 
-  for(int pattern = 1; pattern <= 100; pattern++) {
-    string filename = dirname + to_string(pattern) + ".csv";
+  for(auto [mb_n, mb_p] : params) {
 
-    Game game(players);
-    for(int p = 0; p<=100; p++) {
-      int shot_take = game.play();
+    vector<Player> players = gen::one_ace::gen_players(/* mb_n = */ mb_n, /* mb_p = */ mb_p, /* eta = */ eta);
 
-      // 結果の出力
-      poss.emplace_back(p);
-      // メモ: score, shot_takes, player.mental, player.shot_acc, player.made, player.miss
-      d.emplace_back( double(game.score) );
-      d.emplace_back( double(shot_take+1) );
-      for(auto p: game.players) {
-        d.emplace_back(p.mental);
-        d.emplace_back(p.shot_acc);
-        d.emplace_back( double(p.n_made) );
-        d.emplace_back( double(p.n_miss) );
+    // ace = mambaパターン
+    string dirname = "Result/one_ace/mamba=" + to_string(mb_p) + "/";
+    bool result = fs::create_directory(dirname);
+    for(int pattern = 1; pattern <= 10000; pattern++) {
+      string filename = dirname + "pattern" + to_string(pattern) + ".csv";
+
+      Game game(players);
+      for(int p = 0; p<=100; p++) {
+        int shot_take = game.play();
+
+        // 結果の出力
+        poss.emplace_back(p);
+        // メモ: score, shot_takes, player.mental, player.shot_acc, player.made, player.miss
+        d.emplace_back( double(game.score) );
+        d.emplace_back( double(shot_take+1) );
+        for(auto [mental, _shotbase, shot_acc, _mamba, n_made, n_miss, _eta, _etap] : game.players) {
+          d.emplace_back(mental);
+          d.emplace_back(shot_acc);
+          d.emplace_back( double(n_made) );
+          d.emplace_back( double(n_miss) );
+        }
+        datas.emplace_back(d);
+        
+        trash::clear_just_data();
       }
-      datas.emplace_back(d);
-      
-      trash::clear_just_data();
+
+      // ファイル出力
+      try{
+        output::output(filename, titles, poss, datas);
+      }catch(FileIsNotExist e){
+        e.message(filename);
+        break;
+      }
+
+      trash::clear();
     }
 
-    // ファイル出力
-    try{
-      output::output(filename, titles, poss, datas);
-    }catch(FileIsNotExist e){
-      e.message(filename);
-      break;
-    }
-
-    trash::clear();
   }
 
   trash::trash();
